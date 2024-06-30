@@ -1,6 +1,6 @@
 general:
   save_path:  './example_output/real_image_editing'
-  model_path: 'runwayml/stable-diffusion-v1-5'
+  model_path: 'stabilityai/stable-diffusion-xl-base-1.0'
   unet_config: './conf/unet/config.json'
   seed: 0
 
@@ -29,7 +29,7 @@ text_inversion:
   repeats: 100
   learnable_property: 'object'
   center_crop: False
-  unet_pretrain: 'runwayml/stable-diffusion-v1-5'
+  unet_pretrain: 'stabilityai/stable-diffusion-xl-base-1.0'
   save_steps: 50
   randaug: False
   image_path: './example_input/text_inversion/cat/'
@@ -43,7 +43,7 @@ dreambooth:
   with_prior_preservation: True
   class_data_dir: './dreambooth_class_preservation_dir/cat'
   num_class_images: 300
-  pretrained_model_name_or_path: 'runwayml/stable-diffusion-v1-5'
+  pretrained_model_name_or_path: 'stabilityai/stable-diffusion-xl-base-1.0'
   class_prompt: 'a photo of a cat'
   scale_lr: True
   lr: 1e-6

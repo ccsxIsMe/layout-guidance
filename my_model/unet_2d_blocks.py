@@ -1097,6 +1097,9 @@ class CrossAttnUpBlock2D(nn.Module):
         resnets = []
         attentions = []
 
+        if isinstance(attn_num_head_channels, list):
+            attn_num_head_channels = attn_num_head_channels[0]  # 确保是整数
+
         self.attention_type = attention_type
         self.attn_num_head_channels = attn_num_head_channels
 

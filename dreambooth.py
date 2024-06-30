@@ -1,7 +1,7 @@
 import hydra
 import torch
 from transformers import CLIPFeatureExtractor, CLIPTextModel, CLIPTokenizer
-from diffusers import AutoencoderKL, DDPMScheduler, StableDiffusionPipeline
+from diffusers import AutoencoderKL, DDPMScheduler, StableDiffusionPipeline,DiffusionPipeline
 import torch.nn.functional as F
 from PIL import Image, ImageDraw, ImageFont
 from pathlib import Path
@@ -127,11 +127,16 @@ def train_dreambooth(device, unet, vae, tokenizer, text_encoder, cfg, accelerato
 
         if cur_class_images < cfg.dreambooth.num_class_images:
             torch_dtype = torch.float16 if accelerator.device.type == "cuda" else torch.float32
-            pipeline = StableDiffusionPipeline.from_pretrained(
-                cfg.dreambooth.pretrained_model_name_or_path,
-                torch_dtype=torch_dtype,
-                safety_checker=None,
-            )
+            pipeline = DiffusionPipeline.from_pretrained(
+                    "stabilityai/stable-diffusion-xl-base-1.0",
+                    torch_dtype=torch.float16,
+                    use_safetensors=True,
+                    variant="fp16")
+            # pipeline = StableDiffusionPipeline.from_pretrained(
+            #     cfg.dreambooth.pretrained_model_name_or_path,
+            #     torch_dtype=torch_dtype,
+            #     safety_checker=None,
+            # )
             pipeline.set_progress_bar_config(disable=True)
 
             num_new_images = cfg.dreambooth.num_class_images - cur_class_images

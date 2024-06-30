@@ -127,7 +127,7 @@ def main(cfg):
 
 
     # ------------------ example input ------------------
-    examples = {"prompt": "A hello kitty toy is playing with a purple ball.",
+    examples = {"prompt": "A hello kitty toy is playing with a red ball.",
                 "phrases": "hello kitty; ball",
                 "bboxes": [[[0.1, 0.2, 0.5, 0.8]], [[0.75, 0.6, 0.95, 0.8]]],
                 'save_path': cfg.general.save_path

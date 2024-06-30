@@ -20,7 +20,7 @@ import torch.nn as nn
 import torch.utils.checkpoint
 
 from diffusers.configuration_utils import ConfigMixin, register_to_config
-from diffusers.modeling_utils import ModelMixin
+from diffusers import ModelMixin
 from diffusers.utils import BaseOutput, logging
 from diffusers.models.embeddings import TimestepEmbedding, Timesteps
 from .unet_2d_blocks import (
@@ -109,6 +109,10 @@ class UNet2DConditionModel(ModelMixin, ConfigMixin):
             attention_head_dim: int = 8,
     ):
         super().__init__()
+
+        # 确保 attn_num_head_channels 是整数
+        if isinstance(attention_head_dim, list):
+            attention_head_dim = attention_head_dim[0]
 
         self.sample_size = sample_size
         time_embed_dim = block_out_channels[0] * 4

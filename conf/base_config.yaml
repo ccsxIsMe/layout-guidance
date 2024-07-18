@@ -1,7 +1,7 @@
 
 general:
   save_path:  './example_output'
-  model_path: 'runwayml/stable-diffusion-v1-5'
+  model_path: 'stabilityai/stable-diffusion-xl-base-1.0'
   unet_config: './conf/unet/config.json'
   real_image_editing: False
 

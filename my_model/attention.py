@@ -1,20 +1,6 @@
-# Copyright 2022 The HuggingFace Team. All rights reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 import math
 from dataclasses import dataclass
 from typing import Optional
-import numpy as np
 import torch
 import torch.nn.functional as F
 from torch import nn
@@ -27,15 +13,7 @@ from diffusers.utils.import_utils import is_xformers_available
 
 @dataclass
 class Transformer2DModelOutput(BaseOutput):
-    """
-    Args:
-        sample (`torch.FloatTensor` of shape `(batch_size, num_channels, height, width)` or `(batch size, num_vector_embeds - 1, num_latent_pixels)` if [`Transformer2DModel`] is discrete):
-            Hidden states conditioned on `encoder_hidden_states` input. If discrete, returns probability distributions
-            for the unnoised latent pixels.
-    """
-
     sample: torch.FloatTensor
-
 
 if is_xformers_available():
     import xformers
@@ -43,45 +21,7 @@ if is_xformers_available():
 else:
     xformers = None
 
-
 class Transformer2DModel(ModelMixin, ConfigMixin):
-    """
-    Transformer model for image-like data. Takes either discrete (classes of vector embeddings) or continuous (actual
-    embeddings) inputs_coarse.
-
-    When input is continuous: First, project the input (aka embedding) and reshape to b, t, d. Then apply standard
-    transformer action. Finally, reshape to image.
-
-    When input is discrete: First, input (classes of latent pixels) is converted to embeddings and has positional
-    embeddings applied, see `ImagePositionalEmbeddings`. Then apply standard transformer action. Finally, predict
-    classes of unnoised image.
-
-    Note that it is assumed one of the input classes is the masked latent pixel. The predicted classes of the unnoised
-    image do not contain a prediction for the masked pixel as the unnoised image cannot be masked.
-
-    Parameters:
-        num_attention_heads (`int`, *optional*, defaults to 16): The number of heads to use for multi-head attention.
-        attention_head_dim (`int`, *optional*, defaults to 88): The number of channels in each head.
-        in_channels (`int`, *optional*):
-            Pass if the input is continuous. The number of channels in the input and output.
-        num_layers (`int`, *optional*, defaults to 1): The number of layers of Transformer blocks to use.
-        dropout (`float`, *optional*, defaults to 0.1): The dropout probability to use.
-        cross_attention_dim (`int`, *optional*): The number of context dimensions to use.
-        sample_size (`int`, *optional*): Pass if the input is discrete. The width of the latent images.
-            Note that this is fixed at training time as it is used for learning a number of position embeddings. See
-            `ImagePositionalEmbeddings`.
-        num_vector_embeds (`int`, *optional*):
-            Pass if the input is discrete. The number of classes of the vector embeddings of the latent pixels.
-            Includes the class for the masked latent pixel.
-        activation_fn (`str`, *optional*, defaults to `"geglu"`): Activation function to be used in feed-forward.
-        num_embeds_ada_norm ( `int`, *optional*): Pass if at least one of the norm_layers is `AdaLayerNorm`.
-            The number of diffusion steps used during training. Note that this is fixed at training time as it is used
-            to learn a number of embeddings that are added to the hidden states. During inference, you can denoise for
-            up to but not more than steps than `num_embeds_ada_norm`.
-        attention_bias (`bool`, *optional*):
-            Configure if the TransformerBlocks' attention should contain a bias parameter.
-    """
-
     @register_to_config
     def __init__(
         self,
@@ -95,16 +35,16 @@ class Transformer2DModel(ModelMixin, ConfigMixin):
         attention_bias: bool = False,
         sample_size: Optional[int] = None,
         num_vector_embeds: Optional[int] = None,
-        activation_fn: str = "geglu",
+        activation_fn: str = "silu",
         num_embeds_ada_norm: Optional[int] = None,
+        **kwargs
     ):
         super().__init__()
         self.num_attention_heads = num_attention_heads
-        self.attention_head_dim = attention_head_dim
+        self.attention_head_dim = kwargs.get('attention_head_dim', [5, 10, 20])
+        self.transformer_layers_per_block = kwargs.get('transformer_layers_per_block', [1, 2, 10])
         inner_dim = num_attention_heads * attention_head_dim
 
-        # 1. Transformer2DModel can process both standard continous images of shape `(batch_size, num_channels, width, height)` as well as quantized image embeddings of shape `(batch_size, num_image_vectors)`
-        # Define whether input is continuous or discrete depending on configuration
         self.is_input_continuous = in_channels is not None
         self.is_input_vectorized = num_vector_embeds is not None
 
@@ -119,7 +59,6 @@ class Transformer2DModel(ModelMixin, ConfigMixin):
                 " sure that either `in_channels` or `num_vector_embeds` is not None."
             )
 
-        # 2. Define input layers
         if self.is_input_continuous:
             self.in_channels = in_channels
 
@@ -138,7 +77,6 @@ class Transformer2DModel(ModelMixin, ConfigMixin):
                 num_embed=num_vector_embeds, embed_dim=inner_dim, height=self.height, width=self.width
             )
 
-        # 3. Define transformers blocks
         self.transformer_blocks = nn.ModuleList(
             [
                 BasicTransformerBlock(
@@ -155,7 +93,6 @@ class Transformer2DModel(ModelMixin, ConfigMixin):
             ]
         )
 
-        # 4. Define output layers
         if self.is_input_continuous:
             self.proj_out = nn.Conv2d(inner_dim, in_channels, kernel_size=1, stride=1, padding=0)
         elif self.is_input_vectorized:
@@ -167,25 +104,6 @@ class Transformer2DModel(ModelMixin, ConfigMixin):
             block._set_attention_slice(slice_size)
 
     def forward(self, hidden_states, encoder_hidden_states=None, timestep=None, attn_map=None, attn_shift=False, obj_ids=None, relationship=None, return_dict: bool = True):
-        """
-        Args:
-            hidden_states ( When discrete, `torch.LongTensor` of shape `(batch size, num latent pixels)`.
-                When continous, `torch.FloatTensor` of shape `(batch size, channel, height, width)`): Input
-                hidden_states
-            encoder_hidden_states ( `torch.LongTensor` of shape `(batch size, context dim)`, *optional*):
-                Conditional embeddings for cross attention layer. If not given, cross-attention defaults to
-                self-attention.
-            timestep ( `torch.long`, *optional*):
-                Optional timestep to be applied as an embedding in AdaLayerNorm's. Used to indicate denoising step.
-            return_dict (`bool`, *optional*, defaults to `True`):
-                Whether or not to return a [`models.unet_2d_condition.UNet2DConditionOutput`] instead of a plain tuple.
-
-        Returns:
-            [`~models.attention.Transformer2DModelOutput`] or `tuple`: [`~models.attention.Transformer2DModelOutput`]
-            if `return_dict` is True, otherwise a `tuple`. When returning a tuple, the first element is the sample
-            tensor.
-        """
-        # 1. Input
         if self.is_input_continuous:
             batch, channel, height, weight = hidden_states.shape
             residual = hidden_states
@@ -196,11 +114,9 @@ class Transformer2DModel(ModelMixin, ConfigMixin):
         elif self.is_input_vectorized:
             hidden_states = self.latent_image_embedding(hidden_states)
 
-        # 2. Blocks
         for block in self.transformer_blocks:
             hidden_states, cross_attn_prob = block(hidden_states, context=encoder_hidden_states, timestep=timestep)
 
-        # 3. Output
         if self.is_input_continuous:
             hidden_states = hidden_states.reshape(batch, height, weight, inner_dim).permute(0, 3, 1, 2)
             hidden_states = self.proj_out(hidden_states)
@@ -208,10 +124,7 @@ class Transformer2DModel(ModelMixin, ConfigMixin):
         elif self.is_input_vectorized:
             hidden_states = self.norm_out(hidden_states)
             logits = self.out(hidden_states)
-            # (batch, self.num_vector_embeds - 1, self.num_latent_pixels)
             logits = logits.permute(0, 2, 1)
-
-            # log(p(x_0))
             output = F.log_softmax(logits.double(), dim=1).float()
 
         if not return_dict:
@@ -223,23 +136,7 @@ class Transformer2DModel(ModelMixin, ConfigMixin):
         for block in self.transformer_blocks:
             block._set_use_memory_efficient_attention_xformers(use_memory_efficient_attention_xformers)
 
-
 class AttentionBlock(nn.Module):
-    """
-    An attention block that allows spatial positions to attend to each other. Originally ported from here, but adapted
-    to the N-d case.
-    https://github.com/hojonathanho/diffusion/blob/1e0dceb3b3495bbe19116a5e1b3596cd0706c543/diffusion_tf/models/unet.py#L66.
-    Uses three q, k, v linear layers to compute attention.
-
-    Parameters:
-        channels (`int`): The number of channels in the input and output.
-        num_head_channels (`int`, *optional*):
-            The number of channels in each head. If None, then `num_heads` = 1.
-        norm_num_groups (`int`, *optional*, defaults to 32): The number of groups to use for group norm.
-        rescale_output_factor (`float`, *optional*, defaults to 1.0): The factor to rescale the output by.
-        eps (`float`, *optional*, defaults to 1e-5): The epsilon value to use for group norm.
-    """
-
     def __init__(
         self,
         channels: int,
@@ -255,7 +152,6 @@ class AttentionBlock(nn.Module):
         self.num_head_size = num_head_channels
         self.group_norm = nn.GroupNorm(num_channels=channels, num_groups=norm_num_groups, eps=eps, affine=True)
 
-        # define q,k,v as linear layers
         self.query = nn.Linear(channels, channels)
         self.key = nn.Linear(channels, channels)
         self.value = nn.Linear(channels, channels)
@@ -265,7 +161,6 @@ class AttentionBlock(nn.Module):
 
     def transpose_for_scores(self, projection: torch.Tensor) -> torch.Tensor:
         new_projection_shape = projection.size()[:-1] + (self.num_heads, -1)
-        # move heads to 2nd position (B, T, H * D) -> (B, T, H, D) -> (B, H, T, D)
         new_projection = projection.view(new_projection_shape).permute(0, 2, 1, 3)
         return new_projection
 
@@ -273,59 +168,34 @@ class AttentionBlock(nn.Module):
         residual = hidden_states
         batch, channel, height, width = hidden_states.shape
 
-        # norm
         hidden_states = self.group_norm(hidden_states)
-
         hidden_states = hidden_states.view(batch, channel, height * width).transpose(1, 2)
 
-        # proj to q, k, v
         query_proj = self.query(hidden_states)
         key_proj = self.key(hidden_states)
         value_proj = self.value(hidden_states)
 
-        # transpose
         query_states = self.transpose_for_scores(query_proj)
         key_states = self.transpose_for_scores(key_proj)
         value_states = self.transpose_for_scores(value_proj)
 
-        # get scores
         scale = 1 / math.sqrt(math.sqrt(self.channels / self.num_heads))
-        attention_scores = torch.matmul(query_states * scale, key_states.transpose(-1, -2) * scale)  # TODO: use baddmm
+        attention_scores = torch.matmul(query_states * scale, key_states.transpose(-1, -2) * scale)
         attention_probs = torch.softmax(attention_scores.float(), dim=-1).type(attention_scores.dtype)
 
-        # compute attention output
         hidden_states = torch.matmul(attention_probs, value_states)
 
         hidden_states = hidden_states.permute(0, 2, 1, 3).contiguous()
         new_hidden_states_shape = hidden_states.size()[:-2] + (self.channels,)
         hidden_states = hidden_states.view(new_hidden_states_shape)
 
-        # compute next hidden_states
         hidden_states = self.proj_attn(hidden_states)
         hidden_states = hidden_states.transpose(-1, -2).reshape(batch, channel, height, width)
 
-        # res connect and rescale
         hidden_states = (hidden_states + residual) / self.rescale_output_factor
         return hidden_states
 
-
 class BasicTransformerBlock(nn.Module):
-    r"""
-    A basic Transformer block.
-
-    Parameters:
-        dim (`int`): The number of channels in the input and output.
-        num_attention_heads (`int`): The number of heads to use for multi-head attention.
-        attention_head_dim (`int`): The number of channels in each head.
-        dropout (`float`, *optional*, defaults to 0.0): The dropout probability to use.
-        cross_attention_dim (`int`, *optional*): The size of the context vector for cross attention.
-        activation_fn (`str`, *optional*, defaults to `"geglu"`): Activation function to be used in feed-forward.
-        num_embeds_ada_norm (:
-            obj: `int`, *optional*): The number of diffusion steps used during training. See `Transformer2DModel`.
-        attention_bias (:
-            obj: `bool`, *optional*, defaults to `False`): Configure if the attentions should contain a bias parameter.
-    """
-
     def __init__(
         self,
         dim: int,
@@ -333,7 +203,7 @@ class BasicTransformerBlock(nn.Module):
         attention_head_dim: int,
         dropout=0.0,
         cross_attention_dim: Optional[int] = None,
-        activation_fn: str = "geglu",
+        activation_fn: str = "silu",
         num_embeds_ada_norm: Optional[int] = None,
         attention_bias: bool = False,
     ):
@@ -344,7 +214,7 @@ class BasicTransformerBlock(nn.Module):
             dim_head=attention_head_dim,
             dropout=dropout,
             bias=attention_bias,
-        )  # is a self-attention
+        )
         self.ff = FeedForward(dim, dropout=dropout, activation_fn=activation_fn)
         self.attn2 = CrossAttention(
             query_dim=dim,
@@ -353,9 +223,8 @@ class BasicTransformerBlock(nn.Module):
             dim_head=attention_head_dim,
             dropout=dropout,
             bias=attention_bias,
-        )  # is self-attn if context is none
+        )
 
-        # layer norms
         self.use_ada_layer_norm = num_embeds_ada_norm is not None
         if self.use_ada_layer_norm:
             self.norm1 = AdaLayerNorm(dim, num_embeds_ada_norm)
@@ -384,7 +253,6 @@ class BasicTransformerBlock(nn.Module):
             )
         else:
             try:
-                # Make sure we can run the memory efficient attention
                 _ = xformers.ops.memory_efficient_attention(
                     torch.randn((1, 2, 40), device="cuda"),
                     torch.randn((1, 2, 40), device="cuda"),
@@ -396,41 +264,24 @@ class BasicTransformerBlock(nn.Module):
             self.attn2._use_memory_efficient_attention_xformers = use_memory_efficient_attention_xformers
 
     def forward(self, hidden_states, context=None, timestep=None):
-        # 1. Self-Attention
+        print(f"BasicTransformerBlock - context shape: {context.shape if context is not None else 'None'}")
         norm_hidden_states = (
             self.norm1(hidden_states, timestep) if self.use_ada_layer_norm else self.norm1(hidden_states)
         )
         tmp_hidden_states, cross_attn_prob = self.attn1(norm_hidden_states)
         hidden_states = tmp_hidden_states + hidden_states
 
-        # 2. Cross-Attention
         norm_hidden_states = (
             self.norm2(hidden_states, timestep) if self.use_ada_layer_norm else self.norm2(hidden_states)
         )
         tmp_hidden_states, cross_attn_prob = self.attn2(norm_hidden_states, context=context)
         hidden_states = tmp_hidden_states + hidden_states
 
-        # 3. Feed-forward
         hidden_states = self.ff(self.norm3(hidden_states)) + hidden_states
 
         return hidden_states, cross_attn_prob
 
-
 class CrossAttention(nn.Module):
-    r"""
-    A cross attention layer.
-
-    Parameters:
-        query_dim (`int`): The number of channels in the query.
-        cross_attention_dim (`int`, *optional*):
-            The number of channels in the context. If not given, defaults to `query_dim`.
-        heads (`int`,  *optional*, defaults to 8): The number of heads to use for multi-head attention.
-        dim_head (`int`,  *optional*, defaults to 64): The number of channels in each head.
-        dropout (`float`, *optional*, defaults to 0.0): The dropout probability to use.
-        bias (`bool`, *optional*, defaults to False):
-            Set to `True` for the query, key, and value linear layers to contain a bias parameter.
-    """
-
     def __init__(
         self,
         query_dim: int,
@@ -439,6 +290,7 @@ class CrossAttention(nn.Module):
         dim_head: int = 64,
         dropout: float = 0.0,
         bias=False,
+        **kwargs,
     ):
         super().__init__()
         inner_dim = dim_head * heads
@@ -446,9 +298,6 @@ class CrossAttention(nn.Module):
 
         self.scale = dim_head**-0.5
         self.heads = heads
-        # for slice_size > 0 the attention score computation
-        # is split across the batch axis to save memory
-        # You can set slice_size with `set_attention_slice`
         self._slice_size = None
         self._use_memory_efficient_attention_xformers = False
 
@@ -482,15 +331,16 @@ class CrossAttention(nn.Module):
         key = self.to_k(context)
         value = self.to_v(context)
 
+        # 调试信息
+        print(f"context shape: {context.shape}")
+        print(f"self.to_k weight shape: {self.to_k.weight.shape}")
+
         dim = query.shape[-1]
 
         query = self.reshape_heads_to_batch_dim(query)
         key = self.reshape_heads_to_batch_dim(key)
         value = self.reshape_heads_to_batch_dim(value)
 
-        # TODO(PVP) - mask is currently never used. Remember to re-implement when used
-
-        # attention, what we cannot get enough of
         if self._use_memory_efficient_attention_xformers:
             hidden_states = self._memory_efficient_attention_xformers(query, key, value)
         else:
@@ -499,28 +349,20 @@ class CrossAttention(nn.Module):
             else:
                 hidden_states = self._sliced_attention(query, key, value, sequence_length, dim)
 
-        # linear proj
         hidden_states = self.to_out[0](hidden_states)
-        # dropout
         hidden_states = self.to_out[1](hidden_states)
         return hidden_states, attention_probs
 
     def _attention(self, query, key, value):
-        # TODO: use baddbmm for better performance
         if query.device.type == "mps":
-            # Better performance on mps (~20-25%)
             attention_scores = torch.einsum("b i d, b j d -> b i j", query, key) * self.scale
         else:
             attention_scores = torch.matmul(query, key.transpose(-1, -2)) * self.scale
         attention_probs = attention_scores.softmax(dim=-1)
-        # compute attention output
-
         if query.device.type == "mps":
             hidden_states = torch.einsum("b i j, b j d -> b i d", attention_probs, value)
         else:
             hidden_states = torch.matmul(attention_probs, value)
-
-        # reshape hidden_states
         hidden_states = self.reshape_batch_dim_to_heads(hidden_states)
         return hidden_states, attention_probs
 
@@ -534,7 +376,6 @@ class CrossAttention(nn.Module):
             start_idx = i * slice_size
             end_idx = (i + 1) * slice_size
             if query.device.type == "mps":
-                # Better performance on mps (~20-25%)
                 attn_slice = (
                     torch.einsum("b i d, b j d -> b i j", query[start_idx:end_idx], key[start_idx:end_idx])
                     * self.scale
@@ -542,7 +383,7 @@ class CrossAttention(nn.Module):
             else:
                 attn_slice = (
                     torch.matmul(query[start_idx:end_idx], key[start_idx:end_idx].transpose(1, 2)) * self.scale
-                )  # TODO: use baddbmm for better performance
+                )
             attn_slice = attn_slice.softmax(dim=-1)
             if query.device.type == "mps":
                 attn_slice = torch.einsum("b i j, b j d -> b i d", attn_slice, value[start_idx:end_idx])
@@ -550,8 +391,6 @@ class CrossAttention(nn.Module):
                 attn_slice = torch.matmul(attn_slice, value[start_idx:end_idx])
 
             hidden_states[start_idx:end_idx] = attn_slice
-
-        # reshape hidden_states
         hidden_states = self.reshape_batch_dim_to_heads(hidden_states)
         return hidden_states
 
@@ -560,42 +399,30 @@ class CrossAttention(nn.Module):
         hidden_states = self.reshape_batch_dim_to_heads(hidden_states)
         return hidden_states
 
-
 class FeedForward(nn.Module):
-    r"""
-    A feed-forward layer.
-
-    Parameters:
-        dim (`int`): The number of channels in the input.
-        dim_out (`int`, *optional*): The number of channels in the output. If not given, defaults to `dim`.
-        mult (`int`, *optional*, defaults to 4): The multiplier to use for the hidden dimension.
-        dropout (`float`, *optional*, defaults to 0.0): The dropout probability to use.
-        activation_fn (`str`, *optional*, defaults to `"geglu"`): Activation function to be used in feed-forward.
-    """
-
     def __init__(
         self,
         dim: int,
         dim_out: Optional[int] = None,
         mult: int = 4,
         dropout: float = 0.0,
-        activation_fn: str = "geglu",
+        activation_fn: str = "silu",
     ):
         super().__init__()
         inner_dim = int(dim * mult)
         dim_out = dim_out if dim_out is not None else dim
 
         if activation_fn == "geglu":
-            geglu = GEGLU(dim, inner_dim)
+            self.activation = GEGLU(dim, inner_dim)
         elif activation_fn == "geglu-approximate":
-            geglu = ApproximateGELU(dim, inner_dim)
+            self.activation = ApproximateGELU(dim, inner_dim)
+        elif activation_fn == "silu":
+            self.activation = nn.SiLU()
 
         self.net = nn.ModuleList([])
-        # project in
-        self.net.append(geglu)
-        # project dropout
+        self.net.append(nn.Linear(dim, inner_dim))
+        self.net.append(self.activation)
         self.net.append(nn.Dropout(dropout))
-        # project out
         self.net.append(nn.Linear(inner_dim, dim_out))
 
     def forward(self, hidden_states):
@@ -603,17 +430,7 @@ class FeedForward(nn.Module):
             hidden_states = module(hidden_states)
         return hidden_states
 
-
-# feedforward
 class GEGLU(nn.Module):
-    r"""
-    A variant of the gated linear unit activation function from https://arxiv.org/abs/2002.05202.
-
-    Parameters:
-        dim_in (`int`): The number of channels in the input.
-        dim_out (`int`): The number of channels in the output.
-    """
-
     def __init__(self, dim_in: int, dim_out: int):
         super().__init__()
         self.proj = nn.Linear(dim_in, dim_out * 2)
@@ -621,21 +438,13 @@ class GEGLU(nn.Module):
     def gelu(self, gate):
         if gate.device.type != "mps":
             return F.gelu(gate)
-        # mps: gelu is not implemented for float16
         return F.gelu(gate.to(dtype=torch.float32)).to(dtype=gate.dtype)
 
     def forward(self, hidden_states):
         hidden_states, gate = self.proj(hidden_states).chunk(2, dim=-1)
         return hidden_states * self.gelu(gate)
 
-
 class ApproximateGELU(nn.Module):
-    """
-    The approximate form of Gaussian Error Linear Unit (GELU)
-
-    For more details, see section 2: https://arxiv.org/abs/1606.08415
-    """
-
     def __init__(self, dim_in: int, dim_out: int):
         super().__init__()
         self.proj = nn.Linear(dim_in, dim_out)
@@ -644,12 +453,7 @@ class ApproximateGELU(nn.Module):
         x = self.proj(x)
         return x * torch.sigmoid(1.702 * x)
 
-
 class AdaLayerNorm(nn.Module):
-    """
-    Norm layer modified to incorporate timestep embeddings.
-    """
-
     def __init__(self, embedding_dim, num_embeddings):
         super().__init__()
         self.emb = nn.Embedding(num_embeddings, embedding_dim)

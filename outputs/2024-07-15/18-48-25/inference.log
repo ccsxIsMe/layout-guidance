@@ -1,0 +1,6 @@
+[2024-07-15 18:49:03,391][__main__][INFO] - {'general': {'save_path': './example_output', 'model_path': 'stabilityai/stable-diffusion-xl-base-1.0', 'unet_config': './conf/unet/config.json', 'real_image_editing': False}, 'inference': {'loss_scale': 30, 'batch_size': 1, 'loss_threshold': 0.2, 'max_iter': 5, 'max_index_step': 10, 'timesteps': 51, 'classifier_free_guidance': 7.5, 'rand_seed': 445}, 'noise_schedule': {'beta_start': 0.00085, 'beta_end': 0.012, 'beta_schedule': 'scaled_linear', 'num_train_timesteps': 1000}, 'real_image_editing': {'dreambooth_path': '', 'text_inversion_path': '', 'placeholder_token': '<sks>'}}
+[2024-07-15 18:49:03,392][__main__][INFO] - save config to ./example_output\config.yaml
+[2024-07-15 18:49:03,395][__main__][INFO] - Inference
+[2024-07-15 18:49:03,395][__main__][INFO] - Prompt: A hello kitty toy is playing with a purple ball.
+[2024-07-15 18:49:03,395][__main__][INFO] - Phrases: hello kitty; ball
+[2024-07-15 18:49:03,395][__main__][INFO] - Convert Phrases to Object Positions

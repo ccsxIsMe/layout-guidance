@@ -32,6 +32,7 @@ def get_down_block(
         resnet_groups=None,
         cross_attention_dim=None,
         downsample_padding=None,
+        cross_attention_norm=None,  # 新增参数
 ):
     down_block_type = down_block_type[7:] if down_block_type.startswith("UNetRes") else down_block_type
     if down_block_type == "DownBlock2D":
@@ -74,6 +75,7 @@ def get_down_block(
             downsample_padding=downsample_padding,
             cross_attention_dim=cross_attention_dim,
             attn_num_head_channels=attn_num_head_channels,
+            cross_attention_norm=cross_attention_norm,  # 新增参数
         )
     elif down_block_type == "SkipDownBlock2D":
         return SkipDownBlock2D(
@@ -137,6 +139,7 @@ def get_up_block(
         attn_num_head_channels,
         resnet_groups=None,
         cross_attention_dim=None,
+        cross_attention_norm=None,  # 新增参数
 ):
     up_block_type = up_block_type[7:] if up_block_type.startswith("UNetRes") else up_block_type
     if up_block_type == "UpBlock2D":
@@ -166,6 +169,7 @@ def get_up_block(
             resnet_groups=resnet_groups,
             cross_attention_dim=cross_attention_dim,
             attn_num_head_channels=attn_num_head_channels,
+            cross_attention_norm=cross_attention_norm,  # 新增参数
         )
     elif up_block_type == "AttnUpBlock2D":
         return AttnUpBlock2D(
@@ -507,6 +511,7 @@ class CrossAttnDownBlock2D(nn.Module):
             output_scale_factor=1.0,
             downsample_padding=1,
             add_downsample=True,
+            cross_attention_norm=None,  # 新增参数
     ):
         super().__init__()
         resnets = []
@@ -514,6 +519,7 @@ class CrossAttnDownBlock2D(nn.Module):
 
         self.attention_type = attention_type
         self.attn_num_head_channels = attn_num_head_channels
+        self.cross_attention_norm = cross_attention_norm
 
         for i in range(num_layers):
             in_channels = in_channels if i == 0 else out_channels
@@ -538,8 +544,8 @@ class CrossAttnDownBlock2D(nn.Module):
                     in_channels=out_channels,
                     num_layers=1,
                     cross_attention_dim=cross_attention_dim,
-                    norm_num_groups=resnet_groups,
-                    )
+                    norm_num_groups=resnet_groups
+                )
             )
         self.attentions = nn.ModuleList(attentions)
         self.resnets = nn.ModuleList(resnets)
@@ -1092,6 +1098,7 @@ class CrossAttnUpBlock2D(nn.Module):
             attention_type="default",
             output_scale_factor=1.0,
             add_upsample=True,
+            cross_attention_norm=None,  # 新增参数
     ):
         super().__init__()
         resnets = []
@@ -1099,6 +1106,7 @@ class CrossAttnUpBlock2D(nn.Module):
 
         self.attention_type = attention_type
         self.attn_num_head_channels = attn_num_head_channels
+        self.cross_attention_norm = cross_attention_norm
 
         for i in range(num_layers):
             res_skip_channels = in_channels if (i == num_layers - 1) else out_channels
@@ -1125,8 +1133,8 @@ class CrossAttnUpBlock2D(nn.Module):
                     in_channels=out_channels,
                     num_layers=1,
                     cross_attention_dim=cross_attention_dim,
-                    norm_num_groups=resnet_groups,
-                    )
+                    norm_num_groups=resnet_groups
+                )
             )
         self.attentions = nn.ModuleList(attentions)
         self.resnets = nn.ModuleList(resnets)
@@ -1169,7 +1177,6 @@ class CrossAttnUpBlock2D(nn.Module):
     ):
         cross_attn_prob_list = list()
         for layer_idx, (resnet, attn) in enumerate(zip(self.resnets, self.attentions)):
-            # pop res hidden states
             res_hidden_states = res_hidden_states_tuple[-1]
             res_hidden_states_tuple = res_hidden_states_tuple[:-1]
             hidden_states = torch.cat([hidden_states, res_hidden_states], dim=1)

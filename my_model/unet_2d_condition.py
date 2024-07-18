@@ -13,7 +13,7 @@
 # limitations under the License.
 import pdb
 from dataclasses import dataclass
-from typing import Optional, Tuple, Union
+from typing import Optional, Tuple, Union , List
 
 import torch
 import torch.nn as nn
@@ -49,133 +49,128 @@ class UNet2DConditionOutput(BaseOutput):
 
 
 class UNet2DConditionModel(ModelMixin, ConfigMixin):
-    r"""
-    UNet2DConditionModel is a conditional 2D UNet model that takes in a noisy sample, conditional state, and a timestep
-    and returns sample shaped output.
-
-    This model inherits from [`ModelMixin`]. Check the superclass documentation for the generic methods the library
-    implements for all the models (such as downloading or saving, etc.)
-
-    Parameters:
-        sample_size (`int`, *optional*): The size of the input sample.
-        in_channels (`int`, *optional*, defaults to 4): The number of channels in the input sample.
-        out_channels (`int`, *optional*, defaults to 4): The number of channels in the output.
-        center_input_sample (`bool`, *optional*, defaults to `False`): Whether to center the input sample.
-        flip_sin_to_cos (`bool`, *optional*, defaults to `False`):
-            Whether to flip the sin to cos in the time embedding.
-        freq_shift (`int`, *optional*, defaults to 0): The frequency shift to apply to the time embedding.
-        down_block_types (`Tuple[str]`, *optional*, defaults to `("CrossAttnDownBlock2D", "CrossAttnDownBlock2D", "CrossAttnDownBlock2D", "DownBlock2D")`):
-            The tuple of downsample blocks to use.
-        up_block_types (`Tuple[str]`, *optional*, defaults to `("UpBlock2D", "CrossAttnUpBlock2D", "CrossAttnUpBlock2D", "CrossAttnUpBlock2D",)`):
-            The tuple of upsample blocks to use.
-        block_out_channels (`Tuple[int]`, *optional*, defaults to `(320, 640, 1280, 1280)`):
-            The tuple of output channels for each block.
-        layers_per_block (`int`, *optional*, defaults to 2): The number of layers per block.
-        downsample_padding (`int`, *optional*, defaults to 1): The padding to use for the downsampling convolution.
-        mid_block_scale_factor (`float`, *optional*, defaults to 1.0): The scale factor to use for the mid block.
-        act_fn (`str`, *optional*, defaults to `"silu"`): The activation function to use.
-        norm_num_groups (`int`, *optional*, defaults to 32): The number of groups to use for the normalization.
-        norm_eps (`float`, *optional*, defaults to 1e-5): The epsilon to use for the normalization.
-        cross_attention_dim (`int`, *optional*, defaults to 1280): The dimension of the cross attention features.
-        attention_head_dim (`int`, *optional*, defaults to 8): The dimension of the attention heads.
-    """
-
-    _supports_gradient_checkpointing = True
-
     @register_to_config
-    def __init__(
-            self,
-            sample_size: Optional[int] = None,
-            in_channels: int = 4,
-            out_channels: int = 4,
-            center_input_sample: bool = False,
-            flip_sin_to_cos: bool = True,
-            freq_shift: int = 0,
-            down_block_types: Tuple[str] = (
-                    "CrossAttnDownBlock2D",
-                    "CrossAttnDownBlock2D",
-                    "CrossAttnDownBlock2D",
-                    "DownBlock2D",
-            ),
-            up_block_types: Tuple[str] = ("UpBlock2D", "CrossAttnUpBlock2D", "CrossAttnUpBlock2D", "CrossAttnUpBlock2D"),
-            block_out_channels: Tuple[int] = (320, 640, 1280, 1280),
-            layers_per_block: int = 2,
-            downsample_padding: int = 1,
-            mid_block_scale_factor: float = 1,
-            act_fn: str = "silu",
-            norm_num_groups: int = 32,
-            norm_eps: float = 1e-5,
-            cross_attention_dim: int = 1280,
-            attention_head_dim: int = 8,
-    ):
+    # def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
+        # 处理已知的参数
+        self.sample_size = kwargs.get('sample_size', 128)
+        self.in_channels = kwargs.get('in_channels', 4)
+        self.out_channels = kwargs.get('out_channels', 4)
+        self.center_input_sample = kwargs.get('center_input_sample', False)
+        self.flip_sin_to_cos = kwargs.get('flip_sin_to_cos', True)
+        self.freq_shift = kwargs.get('freq_shift', 0)
+        self.down_block_types = kwargs.get('down_block_types', (
+            "DownBlock2D",
+            "CrossAttnDownBlock2D",
+            "CrossAttnDownBlock2D",
+        ))
+        self.up_block_types = kwargs.get('up_block_types', ("CrossAttnUpBlock2D", "CrossAttnUpBlock2D", "UpBlock2D"))
+        self.block_out_channels = kwargs.get('block_out_channels', (320, 640, 1280))
+        self.layers_per_block = kwargs.get('layers_per_block', 2)
+        self.downsample_padding = kwargs.get('downsample_padding', 1)
+        self.mid_block_scale_factor = kwargs.get('mid_block_scale_factor', 1)
+        self.act_fn = kwargs.get('act_fn', "silu")
+        self.norm_num_groups = kwargs.get('norm_num_groups', 32)
+        self.norm_eps = kwargs.get('norm_eps', 1e-5)
+        self.cross_attention_dim = kwargs.get('cross_attention_dim', 768)
+        self.attention_head_dim = kwargs.get('attention_head_dim', [5, 10, 20])
+        self.addition_embed_type = kwargs.get('addition_embed_type', "text_time")
+        self.addition_embed_type_num_heads = kwargs.get('addition_embed_type_num_heads', 64)
+        self.addition_time_embed_dim = kwargs.get('addition_time_embed_dim', 256)
+        self.class_embed_type = kwargs.get('class_embed_type', None)
+        self.class_embeddings_concat = kwargs.get('class_embeddings_concat', False)
+        self.conv_in_kernel = kwargs.get('conv_in_kernel', 3)
+        self.conv_out_kernel = kwargs.get('conv_out_kernel', 3)
+        self.dual_cross_attention = kwargs.get('dual_cross_attention', False)
+        self.encoder_hid_dim = kwargs.get('encoder_hid_dim', None)
+        self.encoder_hid_dim_type = kwargs.get('encoder_hid_dim_type', None)
+        self.mid_block_type = kwargs.get('mid_block_type', "UNetMidBlock2DCrossAttn")
+        self.num_attention_heads = kwargs.get('num_attention_heads', None)
+        self.num_class_embeds = kwargs.get('num_class_embeds', None)
+        self.only_cross_attention = kwargs.get('only_cross_attention', False)
+        self.projection_class_embeddings_input_dim = kwargs.get('projection_class_embeddings_input_dim', 2816)
+        self.resnet_out_scale_factor = kwargs.get('resnet_out_scale_factor', 1.0)
+        self.resnet_skip_time_act = kwargs.get('resnet_skip_time_act', False)
+        self.resnet_time_scale_shift = kwargs.get('resnet_time_scale_shift', "default")
+        self.time_cond_proj_dim = kwargs.get('time_cond_proj_dim', None)
+        self.time_embedding_act_fn = kwargs.get('time_embedding_act_fn', None)
+        self.time_embedding_dim = kwargs.get('time_embedding_dim', None)
+        self.time_embedding_type = kwargs.get('time_embedding_type', "positional")
+        self.timestep_post_act = kwargs.get('timestep_post_act', None)
+        self.transformer_layers_per_block = kwargs.get('transformer_layers_per_block', [1, 2, 10])
+        self.upcast_attention = kwargs.get('upcast_attention', None)
+        self.use_linear_projection = kwargs.get('use_linear_projection', True)
+        self.cross_attention_norm = kwargs.get('cross_attention_norm', None)
+
+        # 其余初始化逻辑
         super().__init__()
 
-        self.sample_size = sample_size
-        time_embed_dim = block_out_channels[0] * 4
+        time_embed_dim = self.block_out_channels[0] * 4
 
-        # input
-        self.conv_in = nn.Conv2d(in_channels, block_out_channels[0], kernel_size=3, padding=(1, 1))
+        # 输入卷积层
+        self.conv_in = nn.Conv2d(self.in_channels, self.block_out_channels[0], kernel_size=self.conv_in_kernel,
+                                 padding=(1, 1))
 
-        # time
-        self.time_proj = Timesteps(block_out_channels[0], flip_sin_to_cos, freq_shift)
-        timestep_input_dim = block_out_channels[0]
-
+        # 时间嵌入
+        self.time_proj = Timesteps(self.block_out_channels[0], self.flip_sin_to_cos, self.freq_shift)
+        timestep_input_dim = self.block_out_channels[0]
         self.time_embedding = TimestepEmbedding(timestep_input_dim, time_embed_dim)
+
+        self.addition_time_embedding = None
+        if self.addition_embed_type == "text_time":
+            self.addition_time_embedding = nn.Linear(self.addition_time_embed_dim, time_embed_dim)
 
         self.down_blocks = nn.ModuleList([])
         self.mid_block = None
         self.up_blocks = nn.ModuleList([])
 
-        # down
-        output_channel = block_out_channels[0]
-        for i, down_block_type in enumerate(down_block_types):
+        output_channel = self.block_out_channels[0]
+        for i, down_block_type in enumerate(self.down_block_types):
             input_channel = output_channel
-            output_channel = block_out_channels[i]
-            is_final_block = i == len(block_out_channels) - 1
+            output_channel = self.block_out_channels[i]
+            is_final_block = i == len(self.block_out_channels) - 1
 
             down_block = get_down_block(
                 down_block_type,
-                num_layers=layers_per_block,
+                num_layers=self.layers_per_block,
                 in_channels=input_channel,
                 out_channels=output_channel,
                 temb_channels=time_embed_dim,
                 add_downsample=not is_final_block,
-                resnet_eps=norm_eps,
-                resnet_act_fn=act_fn,
-                resnet_groups=norm_num_groups,
-                cross_attention_dim=cross_attention_dim,
-                attn_num_head_channels=attention_head_dim,
-                downsample_padding=downsample_padding,
+                resnet_eps=self.norm_eps,
+                resnet_act_fn=self.act_fn,
+                resnet_groups=self.norm_num_groups,
+                cross_attention_dim=self.cross_attention_dim,
+                attn_num_head_channels=self.attention_head_dim[i],
+                downsample_padding=self.downsample_padding,
+                cross_attention_norm=self.cross_attention_norm,
             )
             self.down_blocks.append(down_block)
 
-        # mid
-        self.mid_block = UNetMidBlock2DCrossAttn(
-            in_channels=block_out_channels[-1],
+        # 中间块
+        mid_block_cls = globals()[self.mid_block_type]
+        self.mid_block = mid_block_cls(
+            in_channels=self.block_out_channels[-1],
             temb_channels=time_embed_dim,
-            resnet_eps=norm_eps,
-            resnet_act_fn=act_fn,
-            output_scale_factor=mid_block_scale_factor,
-            resnet_time_scale_shift="default",
-            cross_attention_dim=cross_attention_dim,
-            attn_num_head_channels=attention_head_dim,
-            resnet_groups=norm_num_groups,
+            resnet_eps=self.norm_eps,
+            resnet_act_fn=self.act_fn,
+            output_scale_factor=self.mid_block_scale_factor,
+            resnet_time_scale_shift=self.resnet_time_scale_shift,
+            cross_attention_dim=self.cross_attention_dim,
+            attn_num_head_channels=self.attention_head_dim[-1],
+            resnet_groups=self.norm_num_groups,
         )
 
-        # count how many layers upsample the images
         self.num_upsamplers = 0
-
-        # up
-        reversed_block_out_channels = list(reversed(block_out_channels))
+        reversed_block_out_channels = list(reversed(self.block_out_channels))
         output_channel = reversed_block_out_channels[0]
-        for i, up_block_type in enumerate(up_block_types):
-            is_final_block = i == len(block_out_channels) - 1
+        for i, up_block_type in enumerate(self.up_block_types):
+            is_final_block = i == len(self.block_out_channels) - 1
 
             prev_output_channel = output_channel
             output_channel = reversed_block_out_channels[i]
-            input_channel = reversed_block_out_channels[min(i + 1, len(block_out_channels) - 1)]
+            input_channel = reversed_block_out_channels[min(i + 1, len(self.block_out_channels) - 1)]
 
-            # add upsample block for all BUT final layer
             if not is_final_block:
                 add_upsample = True
                 self.num_upsamplers += 1
@@ -184,25 +179,29 @@ class UNet2DConditionModel(ModelMixin, ConfigMixin):
 
             up_block = get_up_block(
                 up_block_type,
-                num_layers=layers_per_block + 1,
+                num_layers=self.layers_per_block + 1,
                 in_channels=input_channel,
                 out_channels=output_channel,
                 prev_output_channel=prev_output_channel,
                 temb_channels=time_embed_dim,
                 add_upsample=add_upsample,
-                resnet_eps=norm_eps,
-                resnet_act_fn=act_fn,
-                resnet_groups=norm_num_groups,
-                cross_attention_dim=cross_attention_dim,
-                attn_num_head_channels=attention_head_dim,
+                resnet_eps=self.norm_eps,
+                resnet_act_fn=self.act_fn,
+                resnet_groups=self.norm_num_groups,
+                cross_attention_dim=self.cross_attention_dim,
+                attn_num_head_channels=self.attention_head_dim[i],
             )
             self.up_blocks.append(up_block)
             prev_output_channel = output_channel
 
-        # out
-        self.conv_norm_out = nn.GroupNorm(num_channels=block_out_channels[0], num_groups=norm_num_groups, eps=norm_eps)
+        # 输出层
+        self.conv_norm_out = nn.GroupNorm(num_channels=self.block_out_channels[0], num_groups=self.norm_num_groups,
+                                          eps=self.norm_eps)
         self.conv_act = nn.SiLU()
-        self.conv_out = nn.Conv2d(block_out_channels[0], out_channels, 3, padding=1)
+        self.conv_out = nn.Conv2d(self.block_out_channels[0], self.out_channels, kernel_size=self.conv_out_kernel,
+                                  padding=1)
+
+
 
     def set_attention_slice(self, slice_size):
         if slice_size is not None and self.config.attention_head_dim % slice_size != 0:

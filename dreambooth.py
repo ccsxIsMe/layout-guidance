@@ -37,7 +37,7 @@ class DreamBoothDataset(Dataset):
             tokenizer,
             class_data_root=None,
             class_prompt=None,
-            size=512,
+            size=1024,
             center_crop=False,
     ):
         self.size = size

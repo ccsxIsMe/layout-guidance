@@ -10,10 +10,12 @@ inference:
   batch_size: 1
   loss_threshold: 0.2
   max_iter: 5
-  max_index_step: 10
-  timesteps: 51
-  classifier_free_guidance: 7.5
-  rand_seed: 445
+  max_index_step: 25
+  timesteps: 5
+  classifier_free_guidance: 7
+  rand_seed: 455
+  image_height: 768
+  image_width: 768
 
 noise_schedule:
   beta_start: 0.00085

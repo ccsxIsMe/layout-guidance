@@ -243,7 +243,7 @@ def text_inversion(device, unet, vae, tokenizer, text_encoder, cfg, accelerator,
         eps=cfg.text_inversion.adam_epsilon,
     )
 
-    noise_scheduler = DDPMScheduler.from_config("runwayml/stable-diffusion-v1-5", subfolder="scheduler")
+    noise_scheduler = DDPMScheduler.from_config("stabilityai/stable-diffusion-xl-base-1.0", subfolder="scheduler")
 
     lr_scheduler = get_scheduler(
         cfg.text_inversion.lr_scheduler,

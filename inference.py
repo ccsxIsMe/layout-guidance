@@ -1,7 +1,7 @@
 import torch
 from omegaconf import OmegaConf
 from transformers import CLIPTextModel, CLIPTokenizer
-from diffusers import AutoencoderKL, LMSDiscreteScheduler
+from diffusers import AutoencoderKL, LMSDiscreteScheduler ,EulerDiscreteScheduler
 from my_model import unet_2d_condition
 import json
 from PIL import Image
@@ -13,7 +13,8 @@ from utils import load_text_inversion
 
 
 # 推理函数
-def inference(device, unet, vae, tokenizer, text_encoder, prompt, bboxes, phrases, cfg, logger):
+# def inference(device, unet, vae, tokenizer, text_encoder, prompt, bboxes, phrases, cfg, logger):
+def inference(device, unet, vae, tokenizer, text_encoder, prompt, bboxes, phrases, cfg, logger, height, width):
 
     logger.info("Inference")  # 记录推理过程
     logger.info(f"Prompt: {prompt}")  # 记录提示词
@@ -21,7 +22,7 @@ def inference(device, unet, vae, tokenizer, text_encoder, prompt, bboxes, phrase
 
     # 获取物体位置
     logger.info("Convert Phrases to Object Positions")
-    object_positions = Pharse2idx(prompt, phrases)  # 将短语转换为物体位置
+    object_positions = Pharse2idx(prompt, phrases)  # 将短语转换为物体位置，从输入的prompt里面获取物体的位置
 
     # 编码无条件嵌入
     uncond_input = tokenizer(
@@ -42,16 +43,33 @@ def inference(device, unet, vae, tokenizer, text_encoder, prompt, bboxes, phrase
     generator = torch.manual_seed(cfg.inference.rand_seed)  # 设置随机种子生成初始潜在噪声
 
     # 创建噪声调度器
-    noise_scheduler = LMSDiscreteScheduler(beta_start=cfg.noise_schedule.beta_start, beta_end=cfg.noise_schedule.beta_end,
-                                           beta_schedule=cfg.noise_schedule.beta_schedule, num_train_timesteps=cfg.noise_schedule.num_train_timesteps)
+    # noise_scheduler = LMSDiscreteScheduler(beta_start=cfg.noise_schedule.beta_start, beta_end=cfg.noise_schedule.beta_end,
+    #                                        beta_schedule=cfg.noise_schedule.beta_schedule, num_train_timesteps=cfg.noise_schedule.num_train_timesteps)
+    # 创建噪声调度器
+    # noise_scheduler = EulerDiscreteScheduler(beta_start=cfg.noise_schedule.beta_start,
+    #                                          beta_end=cfg.noise_schedule.beta_end,
+    #                                          beta_schedule=cfg.noise_schedule.beta_schedule,
+    #                                          num_train_timesteps=cfg.noise_schedule.num_train_timesteps)
+    noise_scheduler = EulerDiscreteScheduler(
+        beta_start=0.00085,
+        beta_end=0.012,
+        beta_schedule="scaled_linear",
+        interpolation_type="linear",
+        num_train_timesteps=1000,
+        prediction_type="epsilon",
+        steps_offset=1,
+        timestep_spacing="leading",
+        trained_betas=None,
+        use_karras_sigmas=False
+    )
 
     # 初始化潜在变量
     # latents = torch.randn(
     #     (cfg.inference.batch_size, 4, 64, 64),
     #     generator=generator,
     # ).to(device)
-    latents = torch.randn((cfg.inference.batch_size, 4, 64, 64), generator=generator).to(device)
-
+    # latents = torch.randn((cfg.inference.batch_size, 4, 64, 64), generator=generator).to(device)
+    latents = torch.randn((cfg.inference.batch_size, 4, height // 8, width // 8), generator=generator).to(device)
     noise_scheduler.set_timesteps(cfg.inference.timesteps)  # 设置时间步长
 
     latents = latents * noise_scheduler.init_noise_sigma  # 乘以初始噪声标准差
@@ -173,9 +191,14 @@ def main(cfg):
     logger.info("save config to {}".format(os.path.join(cfg.general.save_path, 'config.yaml')))
     OmegaConf.save(cfg, os.path.join(cfg.general.save_path, 'config.yaml'))
 
-    # 推理
-    pil_images = inference(device, unet, vae, tokenizer, text_encoder, examples['prompt'], examples['bboxes'], examples['phrases'], cfg, logger)
+    # 设置图像大小
+    height = cfg.inference.image_height
+    width = cfg.inference.image_width
 
+    # 推理
+    # pil_images = inference(device, unet, vae, tokenizer, text_encoder, examples['prompt'], examples['bboxes'], examples['phrases'], cfg, logger)
+    pil_images = inference(device, unet, vae, tokenizer, text_encoder, examples['prompt'], examples['bboxes'],
+                           examples['phrases'], cfg, logger, height, width)
     # 保存示例图像
     for index, pil_image in enumerate(pil_images):
         image_path = os.path.join(cfg.general.save_path, 'example_{}.png'.format(index))

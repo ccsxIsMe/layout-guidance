@@ -86,3 +86,117 @@
 2024-07-18 09:52:03,469 - __main__ - INFO - Convert Phrases to Object Positions
 2024-07-18 10:03:57,649 - __main__ - INFO - Decode Image...
 2024-07-18 10:04:09,297 - __main__ - INFO - save example image to ./example_output\example_0.png
+2024-07-18 11:10:50,891 - __main__ - INFO - {'general': {'save_path': './example_output', 'model_path': 'stabilityai/stable-diffusion-xl-base-1.0', 'unet_config': './conf/unet/config.json', 'real_image_editing': False}, 'inference': {'loss_scale': 30, 'batch_size': 1, 'loss_threshold': 0.2, 'max_iter': 5, 'max_index_step': 10, 'timesteps': 50, 'classifier_free_guidance': 5, 'rand_seed': 445}, 'noise_schedule': {'beta_start': 0.00085, 'beta_end': 0.012, 'beta_schedule': 'scaled_linear', 'num_train_timesteps': 1000}, 'real_image_editing': {'dreambooth_path': '', 'text_inversion_path': '', 'placeholder_token': '<sks>'}}
+2024-07-18 11:10:50,891 - __main__ - INFO - save config to ./example_output\config.yaml
+2024-07-18 11:10:50,891 - __main__ - INFO - Inference
+2024-07-18 11:10:50,891 - __main__ - INFO - Prompt: A white hello kitty toy sitting on the floor, playing with a small purple ball near its feet.
+2024-07-18 11:10:50,891 - __main__ - INFO - Phrases: hello kitty; ball
+2024-07-18 11:10:50,891 - __main__ - INFO - Convert Phrases to Object Positions
+2024-07-18 11:21:22,822 - __main__ - INFO - Decode Image...
+2024-07-18 11:21:34,909 - __main__ - INFO - save example image to ./example_output\example_0.png
+2024-07-18 11:50:35,732 - __main__ - INFO - {'general': {'save_path': './example_output', 'model_path': 'stabilityai/stable-diffusion-xl-base-1.0', 'unet_config': './conf/unet/config.json', 'real_image_editing': False}, 'inference': {'loss_scale': 30, 'batch_size': 1, 'loss_threshold': 0.2, 'max_iter': 5, 'max_index_step': 10, 'timesteps': 10, 'classifier_free_guidance': 5, 'rand_seed': 877866765, 'image_height': 1024, 'image_width': 1024}, 'noise_schedule': {'beta_start': 0.00085, 'beta_end': 0.012, 'beta_schedule': 'scaled_linear', 'num_train_timesteps': 1000}, 'real_image_editing': {'dreambooth_path': '', 'text_inversion_path': '', 'placeholder_token': '<sks>'}}
+2024-07-18 11:50:35,734 - __main__ - INFO - save config to ./example_output\config.yaml
+2024-07-18 11:50:35,739 - __main__ - INFO - Inference
+2024-07-18 11:50:35,739 - __main__ - INFO - Prompt: A white hello kitty toy sitting on the floor, playing with a small purple ball near its feet.
+2024-07-18 11:50:35,739 - __main__ - INFO - Phrases: hello kitty; ball
+2024-07-18 11:50:35,739 - __main__ - INFO - Convert Phrases to Object Positions
+2024-07-18 11:56:08,261 - __main__ - INFO - {'general': {'save_path': './example_output', 'model_path': 'stabilityai/stable-diffusion-xl-base-1.0', 'unet_config': './conf/unet/config.json', 'real_image_editing': False}, 'inference': {'loss_scale': 30, 'batch_size': 1, 'loss_threshold': 0.2, 'max_iter': 5, 'max_index_step': 10, 'timesteps': 10, 'classifier_free_guidance': 5, 'rand_seed': 445, 'image_height': 1024, 'image_width': 1024}, 'noise_schedule': {'beta_start': 0.00085, 'beta_end': 0.012, 'beta_schedule': 'scaled_linear', 'num_train_timesteps': 1000}, 'real_image_editing': {'dreambooth_path': '', 'text_inversion_path': '', 'placeholder_token': '<sks>'}}
+2024-07-18 11:56:08,261 - __main__ - INFO - save config to ./example_output\config.yaml
+2024-07-18 11:56:08,267 - __main__ - INFO - Inference
+2024-07-18 11:56:08,267 - __main__ - INFO - Prompt: A white hello kitty toy sitting on the floor, playing with a small purple ball near its feet.
+2024-07-18 11:56:08,267 - __main__ - INFO - Phrases: hello kitty; ball
+2024-07-18 11:56:08,267 - __main__ - INFO - Convert Phrases to Object Positions
+2024-07-18 12:03:28,370 - __main__ - INFO - {'general': {'save_path': './example_output', 'model_path': 'stabilityai/stable-diffusion-xl-base-1.0', 'unet_config': './conf/unet/config.json', 'real_image_editing': False}, 'inference': {'loss_scale': 30, 'batch_size': 1, 'loss_threshold': 0.2, 'max_iter': 5, 'max_index_step': 10, 'timesteps': 10, 'classifier_free_guidance': 5, 'rand_seed': 445, 'image_height': 512, 'image_width': 512}, 'noise_schedule': {'beta_start': 0.00085, 'beta_end': 0.012, 'beta_schedule': 'scaled_linear', 'num_train_timesteps': 1000}, 'real_image_editing': {'dreambooth_path': '', 'text_inversion_path': '', 'placeholder_token': '<sks>'}}
+2024-07-18 12:03:28,371 - __main__ - INFO - save config to ./example_output\config.yaml
+2024-07-18 12:03:28,429 - __main__ - INFO - Inference
+2024-07-18 12:03:28,429 - __main__ - INFO - Prompt: A white hello kitty toy sitting on the floor, playing with a small purple ball near its feet.
+2024-07-18 12:03:28,429 - __main__ - INFO - Phrases: hello kitty; ball
+2024-07-18 12:03:28,429 - __main__ - INFO - Convert Phrases to Object Positions
+2024-07-18 12:09:44,837 - __main__ - INFO - Decode Image...
+2024-07-18 12:09:58,175 - __main__ - INFO - save example image to ./example_output\example_0.png
+2024-07-18 15:38:08,254 - __main__ - INFO - {'general': {'save_path': './example_output', 'model_path': 'stabilityai/stable-diffusion-xl-base-1.0', 'unet_config': './conf/unet/config.json', 'real_image_editing': False}, 'inference': {'loss_scale': 30, 'batch_size': 1, 'loss_threshold': 0.2, 'max_iter': 5, 'max_index_step': 10, 'timesteps': 10, 'classifier_free_guidance': 5, 'rand_seed': 69691308, 'image_height': 512, 'image_width': 512}, 'noise_schedule': {'beta_start': 0.00085, 'beta_end': 0.012, 'beta_schedule': 'scaled_linear', 'num_train_timesteps': 1000}, 'real_image_editing': {'dreambooth_path': '', 'text_inversion_path': '', 'placeholder_token': '<sks>'}}
+2024-07-18 15:38:08,255 - __main__ - INFO - save config to ./example_output\config.yaml
+2024-07-18 15:38:08,258 - __main__ - INFO - Inference
+2024-07-18 15:38:08,258 - __main__ - INFO - Prompt: A white hello kitty toy sitting on the floor, playing with a small purple ball near its feet.
+2024-07-18 15:38:08,258 - __main__ - INFO - Phrases: hello kitty; ball
+2024-07-18 15:38:08,258 - __main__ - INFO - Convert Phrases to Object Positions
+2024-07-18 15:43:41,345 - __main__ - INFO - Decode Image...
+2024-07-18 15:43:41,363 - __main__ - INFO - save example image to ./example_output\example_0.png
+2024-07-18 15:53:04,236 - __main__ - INFO - {'general': {'save_path': './example_output', 'model_path': 'stabilityai/stable-diffusion-xl-base-1.0', 'unet_config': './conf/unet/config.json', 'real_image_editing': False}, 'inference': {'loss_scale': 30, 'batch_size': 1, 'loss_threshold': 0.2, 'max_iter': 5, 'max_index_step': 10, 'timesteps': 50, 'classifier_free_guidance': 5, 'rand_seed': 69691308, 'image_height': 512, 'image_width': 512}, 'noise_schedule': {'beta_start': 0.00085, 'beta_end': 0.012, 'beta_schedule': 'scaled_linear', 'num_train_timesteps': 1000}, 'real_image_editing': {'dreambooth_path': '', 'text_inversion_path': '', 'placeholder_token': '<sks>'}}
+2024-07-18 15:53:04,237 - __main__ - INFO - save config to ./example_output\config.yaml
+2024-07-18 15:53:04,241 - __main__ - INFO - Inference
+2024-07-18 15:53:04,241 - __main__ - INFO - Prompt: A white hello kitty toy sitting on the floor, playing with a small purple ball near its feet.
+2024-07-18 15:53:04,241 - __main__ - INFO - Phrases: hello kitty; ball
+2024-07-18 15:53:04,241 - __main__ - INFO - Convert Phrases to Object Positions
+2024-07-18 15:59:09,097 - __main__ - INFO - Decode Image...
+2024-07-18 15:59:09,119 - __main__ - INFO - save example image to ./example_output\example_0.png
+2024-07-18 16:25:28,917 - __main__ - INFO - {'general': {'save_path': './example_output', 'model_path': 'stabilityai/stable-diffusion-xl-base-1.0', 'unet_config': './conf/unet/config.json', 'real_image_editing': False}, 'inference': {'loss_scale': 30, 'batch_size': 1, 'loss_threshold': 0.2, 'max_iter': 5, 'max_index_step': 10, 'timesteps': 50, 'classifier_free_guidance': 5, 'rand_seed': 69691308, 'image_height': 512, 'image_width': 512}, 'noise_schedule': {'beta_start': 0.00085, 'beta_end': 0.012, 'beta_schedule': 'scaled_linear', 'num_train_timesteps': 1000}, 'real_image_editing': {'dreambooth_path': '', 'text_inversion_path': '', 'placeholder_token': '<sks>'}}
+2024-07-18 16:25:28,917 - __main__ - INFO - save config to ./example_output\config.yaml
+2024-07-18 16:25:28,933 - __main__ - INFO - Inference
+2024-07-18 16:25:28,933 - __main__ - INFO - Prompt: A white hello kitty toy sitting on the floor, playing with a small purple ball near its feet.
+2024-07-18 16:25:28,933 - __main__ - INFO - Phrases: hello kitty; ball
+2024-07-18 16:25:28,933 - __main__ - INFO - Convert Phrases to Object Positions
+2024-07-18 16:42:24,117 - __main__ - INFO - {'general': {'save_path': './example_output', 'model_path': 'stabilityai/stable-diffusion-xl-base-1.0', 'unet_config': './conf/unet/config.json', 'real_image_editing': False}, 'inference': {'loss_scale': 30, 'batch_size': 1, 'loss_threshold': 0.2, 'max_iter': 5, 'max_index_step': 10, 'timesteps': 50, 'classifier_free_guidance': 5, 'rand_seed': 69691308, 'image_height': 512, 'image_width': 512}, 'noise_schedule': {'beta_start': 0.00085, 'beta_end': 0.012, 'beta_schedule': 'scaled_linear', 'num_train_timesteps': 1000}, 'real_image_editing': {'dreambooth_path': '', 'text_inversion_path': '', 'placeholder_token': '<sks>'}}
+2024-07-18 16:42:24,117 - __main__ - INFO - save config to ./example_output\config.yaml
+2024-07-18 16:42:24,117 - __main__ - INFO - Inference
+2024-07-18 16:42:24,117 - __main__ - INFO - Prompt: A white hello kitty toy sitting on the floor, playing with a small purple ball near its feet.
+2024-07-18 16:42:24,117 - __main__ - INFO - Phrases: hello kitty; ball
+2024-07-18 16:42:24,117 - __main__ - INFO - Convert Phrases to Object Positions
+2024-07-18 16:50:54,152 - __main__ - INFO - Decode Image...
+2024-07-18 16:51:04,700 - __main__ - INFO - save example image to ./example_output\example_0.png
+2024-07-18 17:43:27,420 - __main__ - INFO - {'general': {'save_path': './example_output', 'model_path': 'stabilityai/stable-diffusion-xl-base-1.0', 'unet_config': './conf/unet/config.json', 'real_image_editing': False}, 'inference': {'loss_scale': 30, 'batch_size': 1, 'loss_threshold': 0.2, 'max_iter': 5, 'max_index_step': 10, 'timesteps': 50, 'classifier_free_guidance': 7.5, 'rand_seed': -1, 'image_height': 768, 'image_width': 768}, 'noise_schedule': {'beta_start': 0.00085, 'beta_end': 0.012, 'beta_schedule': 'scaled_linear', 'num_train_timesteps': 1000}, 'real_image_editing': {'dreambooth_path': '', 'text_inversion_path': '', 'placeholder_token': '<sks>'}}
+2024-07-18 17:43:27,421 - __main__ - INFO - save config to ./example_output\config.yaml
+2024-07-18 17:43:27,425 - __main__ - INFO - Inference
+2024-07-18 17:43:27,425 - __main__ - INFO - Prompt: A white hello kitty toy sitting on the floor, playing with a small purple ball near its feet.
+2024-07-18 17:43:27,425 - __main__ - INFO - Phrases: hello kitty; ball
+2024-07-18 17:43:27,425 - __main__ - INFO - Convert Phrases to Object Positions
+2024-07-18 18:21:09,288 - __main__ - INFO - {'general': {'save_path': './example_output', 'model_path': 'stabilityai/stable-diffusion-xl-base-1.0', 'unet_config': './conf/unet/config.json', 'real_image_editing': False}, 'inference': {'loss_scale': 30, 'batch_size': 1, 'loss_threshold': 0.2, 'max_iter': 5, 'max_index_step': 10, 'timesteps': 50, 'classifier_free_guidance': 7.5, 'rand_seed': -1, 'image_height': 768, 'image_width': 768}, 'noise_schedule': {'beta_start': 0.00085, 'beta_end': 0.012, 'beta_schedule': 'scaled_linear', 'num_train_timesteps': 1000}, 'real_image_editing': {'dreambooth_path': '', 'text_inversion_path': '', 'placeholder_token': '<sks>'}}
+2024-07-18 18:21:09,289 - __main__ - INFO - save config to ./example_output\config.yaml
+2024-07-18 18:21:09,294 - __main__ - INFO - Inference
+2024-07-18 18:21:09,294 - __main__ - INFO - Prompt: A white hello kitty toy sitting on the floor, playing with a small purple ball near its feet.
+2024-07-18 18:21:09,295 - __main__ - INFO - Phrases: hello kitty; ball
+2024-07-18 18:21:09,295 - __main__ - INFO - Convert Phrases to Object Positions
+2024-07-19 16:02:49,756 - __main__ - INFO - {'general': {'save_path': './example_output', 'model_path': 'stabilityai/stable-diffusion-xl-base-1.0', 'unet_config': './conf/unet/config.json', 'real_image_editing': False}, 'inference': {'loss_scale': 30, 'batch_size': 1, 'loss_threshold': 0.2, 'max_iter': 5, 'max_index_step': 10, 'timesteps': 50, 'classifier_free_guidance': 7.5, 'rand_seed': -1, 'image_height': 768, 'image_width': 768}, 'noise_schedule': {'beta_start': 0.00085, 'beta_end': 0.012, 'beta_schedule': 'scaled_linear', 'num_train_timesteps': 1000}, 'real_image_editing': {'dreambooth_path': '', 'text_inversion_path': '', 'placeholder_token': '<sks>'}}
+2024-07-19 16:02:49,756 - __main__ - INFO - save config to ./example_output\config.yaml
+2024-07-19 16:02:49,756 - __main__ - INFO - Inference
+2024-07-19 16:02:49,756 - __main__ - INFO - Prompt: A white hello kitty toy sitting on the floor, playing with a small purple ball near its feet.
+2024-07-19 16:02:49,756 - __main__ - INFO - Phrases: hello kitty; ball
+2024-07-19 16:02:49,756 - __main__ - INFO - Convert Phrases to Object Positions
+2024-07-19 16:11:30,214 - __main__ - INFO - {'general': {'save_path': './example_output', 'model_path': 'stabilityai/stable-diffusion-xl-base-1.0', 'unet_config': './conf/unet/config.json', 'real_image_editing': False}, 'inference': {'loss_scale': 30, 'batch_size': 1, 'loss_threshold': 0.2, 'max_iter': 5, 'max_index_step': 10, 'timesteps': 50, 'classifier_free_guidance': 7.5, 'rand_seed': -1, 'image_height': 768, 'image_width': 768}, 'noise_schedule': {'beta_start': 0.00085, 'beta_end': 0.012, 'beta_schedule': 'scaled_linear', 'num_train_timesteps': 1000}, 'real_image_editing': {'dreambooth_path': '', 'text_inversion_path': '', 'placeholder_token': '<sks>'}}
+2024-07-19 16:11:30,214 - __main__ - INFO - save config to ./example_output\config.yaml
+2024-07-19 16:11:30,214 - __main__ - INFO - Inference
+2024-07-19 16:11:30,214 - __main__ - INFO - Prompt: A white hello kitty toy sitting on the floor, playing with a small purple ball near its feet.
+2024-07-19 16:11:30,214 - __main__ - INFO - Phrases: hello kitty; ball
+2024-07-19 16:11:30,214 - __main__ - INFO - Convert Phrases to Object Positions
+2024-07-19 16:16:04,804 - __main__ - INFO - {'general': {'save_path': './example_output', 'model_path': 'stabilityai/stable-diffusion-xl-base-1.0', 'unet_config': './conf/unet/config.json', 'real_image_editing': False}, 'inference': {'loss_scale': 30, 'batch_size': 1, 'loss_threshold': 0.2, 'max_iter': 5, 'max_index_step': 10, 'timesteps': 10, 'classifier_free_guidance': 7, 'rand_seed': -1, 'image_height': 768, 'image_width': 768}, 'noise_schedule': {'beta_start': 0.00085, 'beta_end': 0.012, 'beta_schedule': 'scaled_linear', 'num_train_timesteps': 1000}, 'real_image_editing': {'dreambooth_path': '', 'text_inversion_path': '', 'placeholder_token': '<sks>'}}
+2024-07-19 16:16:04,805 - __main__ - INFO - save config to ./example_output\config.yaml
+2024-07-19 16:16:04,811 - __main__ - INFO - Inference
+2024-07-19 16:16:04,811 - __main__ - INFO - Prompt: A white hello kitty toy sitting on the floor, playing with a small purple ball near its feet.
+2024-07-19 16:16:04,811 - __main__ - INFO - Phrases: hello kitty; ball
+2024-07-19 16:16:04,811 - __main__ - INFO - Convert Phrases to Object Positions
+2024-07-19 16:35:25,720 - __main__ - INFO - Decode Image...
+2024-07-19 16:36:02,755 - __main__ - INFO - save example image to ./example_output\example_0.png
+2024-07-19 16:41:11,578 - __main__ - INFO - {'general': {'save_path': './example_output', 'model_path': 'stabilityai/stable-diffusion-xl-base-1.0', 'unet_config': './conf/unet/config.json', 'real_image_editing': False}, 'inference': {'loss_scale': 30, 'batch_size': 1, 'loss_threshold': 0.2, 'max_iter': 5, 'max_index_step': 25, 'timesteps': 100, 'classifier_free_guidance': 7, 'rand_seed': -1, 'image_height': 512, 'image_width': 512}, 'noise_schedule': {'beta_start': 0.00085, 'beta_end': 0.012, 'beta_schedule': 'scaled_linear', 'num_train_timesteps': 1000}, 'real_image_editing': {'dreambooth_path': '', 'text_inversion_path': '', 'placeholder_token': '<sks>'}}
+2024-07-19 16:41:11,579 - __main__ - INFO - save config to ./example_output\config.yaml
+2024-07-19 16:41:11,636 - __main__ - INFO - Inference
+2024-07-19 16:41:11,636 - __main__ - INFO - Prompt: A white hello kitty toy sitting on the floor, playing with a small purple ball near its feet.
+2024-07-19 16:41:11,636 - __main__ - INFO - Phrases: hello kitty; ball
+2024-07-19 16:41:11,636 - __main__ - INFO - Convert Phrases to Object Positions
+2024-07-19 17:01:44,043 - __main__ - INFO - Decode Image...
+2024-07-19 17:01:55,148 - __main__ - INFO - save example image to ./example_output\example_0.png
+2024-07-19 17:04:36,896 - __main__ - INFO - {'general': {'save_path': './example_output', 'model_path': 'stabilityai/stable-diffusion-xl-base-1.0', 'unet_config': './conf/unet/config.json', 'real_image_editing': False}, 'inference': {'loss_scale': 30, 'batch_size': 1, 'loss_threshold': 0.2, 'max_iter': 5, 'max_index_step': 25, 'timesteps': 1, 'classifier_free_guidance': 7, 'rand_seed': 455, 'image_height': 512, 'image_width': 512}, 'noise_schedule': {'beta_start': 0.00085, 'beta_end': 0.012, 'beta_schedule': 'scaled_linear', 'num_train_timesteps': 1000}, 'real_image_editing': {'dreambooth_path': '', 'text_inversion_path': '', 'placeholder_token': '<sks>'}}
+2024-07-19 17:04:36,897 - __main__ - INFO - save config to ./example_output\config.yaml
+2024-07-19 17:04:36,901 - __main__ - INFO - Inference
+2024-07-19 17:04:36,901 - __main__ - INFO - Prompt: A white hello kitty toy sitting on the floor, playing with a small purple ball near its feet.
+2024-07-19 17:04:36,901 - __main__ - INFO - Phrases: hello kitty; ball
+2024-07-19 17:04:36,902 - __main__ - INFO - Convert Phrases to Object Positions
+2024-07-19 17:05:25,331 - __main__ - INFO - Decode Image...
+2024-07-19 17:05:37,648 - __main__ - INFO - save example image to ./example_output\example_0.png
+2024-07-19 17:08:22,969 - __main__ - INFO - {'general': {'save_path': './example_output', 'model_path': 'stabilityai/stable-diffusion-xl-base-1.0', 'unet_config': './conf/unet/config.json', 'real_image_editing': False}, 'inference': {'loss_scale': 30, 'batch_size': 1, 'loss_threshold': 0.2, 'max_iter': 5, 'max_index_step': 25, 'timesteps': 5, 'classifier_free_guidance': 7, 'rand_seed': 455, 'image_height': 512, 'image_width': 512}, 'noise_schedule': {'beta_start': 0.00085, 'beta_end': 0.012, 'beta_schedule': 'scaled_linear', 'num_train_timesteps': 1000}, 'real_image_editing': {'dreambooth_path': '', 'text_inversion_path': '', 'placeholder_token': '<sks>'}}
+2024-07-19 17:08:22,970 - __main__ - INFO - save config to ./example_output\config.yaml
+2024-07-19 17:08:22,974 - __main__ - INFO - Inference
+2024-07-19 17:08:22,975 - __main__ - INFO - Prompt: A white hello kitty toy sitting on the floor, playing with a small purple ball near its feet.
+2024-07-19 17:08:22,975 - __main__ - INFO - Phrases: hello kitty; ball
+2024-07-19 17:08:22,975 - __main__ - INFO - Convert Phrases to Object Positions
+2024-07-19 17:11:31,821 - __main__ - INFO - Decode Image...
+2024-07-19 17:11:43,788 - __main__ - INFO - save example image to ./example_output\example_0.png

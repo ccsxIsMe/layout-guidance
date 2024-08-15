@@ -264,7 +264,7 @@ class BasicTransformerBlock(nn.Module):
             self.attn2._use_memory_efficient_attention_xformers = use_memory_efficient_attention_xformers
 
     def forward(self, hidden_states, context=None, timestep=None):
-        print(f"BasicTransformerBlock - context shape: {context.shape if context is not None else 'None'}")
+        # print(f"BasicTransformerBlock - context shape: {context.shape if context is not None else 'None'}")
         norm_hidden_states = (
             self.norm1(hidden_states, timestep) if self.use_ada_layer_norm else self.norm1(hidden_states)
         )
@@ -332,8 +332,8 @@ class CrossAttention(nn.Module):
         value = self.to_v(context)
 
         # 调试信息
-        print(f"context shape: {context.shape}")
-        print(f"self.to_k weight shape: {self.to_k.weight.shape}")
+        # print(f"context shape: {context.shape}")
+        # print(f"self.to_k weight shape: {self.to_k.weight.shape}")
 
         dim = query.shape[-1]
 
